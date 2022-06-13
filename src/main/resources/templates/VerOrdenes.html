@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+
+    <title th:text="${titulo}">Titulo por Defecto</title>
+</head>
+<body>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+    <a href="#"
+       class="navbar-brand mb-0 h1">
+        <img class="d-inline-block align-top" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg"
+             width="30" height="30" />
+        Grupo10 App
+    </a>
+    <button
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            class="navbar-toggler"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+    >
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto text-center" >
+            <li class="nav-item">
+                <a href="/crud/generarOrden" class="nav-link" >Generar Orden</a>
+            </li>
+
+            <li class="nav-item">
+                <a href="/crud/listarOrdenes" class="nav-link" th:text="${nav0}">Listar Ordenes</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container text-center mt-5" >
+    <h1 th:text="${titulo}">Ver orden</h1>
+
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col">
+                            <h6 th:text="|No.Orden: ${noOrden}|">No.Orden: 120</h6>
+                        </div>
+                        <div class="col">
+                            <h6 th:text="|Suplidor: ${suplidor}|">Suplidor: 1-MARIA CASTRO</h6>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <h6 th:text="|Fecha Orden: ${fechaOrden}|">Fecha Orden: 02/06/22</h6>
+                        </div>
+                        <div class="col">
+                            <h6 th:text="|Monto Total: ${montoTotal}"|>Monto Total: 735,000.00</h6>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-primary">
+
+                            <tr>
+                                <th scope="col">Componente</th>
+                                <th scope="col">Descripcion</th>
+                                <th scope="col">Cantidad</th>
+                                <th scope="col">Unidad</th>
+                                <th scope="col">Precio con descuento </th>
+                                <th scope="col">Importe</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <div th:if="${listaMock != null}">
+                                <tr th:each="actual: ${listaMock}">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </div>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+</div>
+
+<!-- Option 1: Bootstrap Bundle with Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+</body>
+</html>
