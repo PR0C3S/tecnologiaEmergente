@@ -43,29 +43,33 @@
 </nav>
 
 <div class="container text-center mt-5" >
-    <h1 th:text="${titulo}">Ver orden</h1>
-
+    <h1 th:text="${titulo}">Inventario</h1>
 
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
+                    <form action="/crud/generarOrden" method="post" id="form1">
                     <div class="row">
-                        <div class="col">
-                            <h6 th:text="|No.Orden: ${noOrden}|">No.Orden: 120</h6>
+
+                        <div class="col-2">
+                            <div class="input-daterange input-group" id="datepicker">
+                                <input type="text" class="input-sm form-control" name="start" />
+                                <span class="input-group-addon">Hasta</span>
+                                <input type="text" class="input-sm form-control" name="end" />
+                            </div>
                         </div>
-                        <div class="col">
-                            <h6 th:text="|Suplidor: ${suplidor}|">Suplidor: 1-MARIA CASTRO</h6>
+
+
+                        <div class="col-auto">
+                            <button type="button" class="btn btn-primary">
+                                Consumo diario <span class="badge bg-secondary">4</span>
+                            </button>
                         </div>
+
                     </div>
-                    <div class="row">
-                        <div class="col">
-                            <h6 th:text="|Fecha Orden: ${fechaOrden}|">Fecha Orden: 02/06/22</h6>
-                        </div>
-                        <div class="col">
-                            <h6 th:text="|Monto Total: ${montoTotal}"|>Monto Total: 735,000.00</h6>
-                        </div>
-                    </div>
+                        <br>
+                    </form>
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover">
                             <thead class="table-primary">
@@ -75,23 +79,32 @@
                                 <th scope="col">Descripcion</th>
                                 <th scope="col">Cantidad</th>
                                 <th scope="col">Unidad</th>
-                                <th scope="col">Precio con descuento </th>
-                                <th scope="col">Importe</th>
+                                <th scope="col">Accion</th>
                             </tr>
                             </thead>
                             <tbody>
-                            <div th:if="${lista != null}">
-                                <tr th:each="actual: ${lista}">
-                                    <td th:text="${actual.codigoSuplidor}"></td>
-                                    <td th:text="${actual.nombre}"></td>
-                                    <td th:text="${actual.rnc}"></td>
-                                    <td th:text="${actual.ciudad}"></td>
-                                    <td th:text="${actual.direccion}"></td>
-                                    <td th:text="$actual.direccion}"></td>
+                            <div th:if="${lista.size() > 0}">
+                                <tr th:each="actual, stats : ${lista}">
+                                    <td th:text="${actual.key.codigoComponente}" ></td>
+                                    <td th:text="${actual.key.descripcion}"></td>
+                                    <td th:text="${actual.value}"></td>
+                                    <td th:text="${actual.key.unidad}"></td>
+
+                                    <td>
+                                        <form action="/crud/DeleteOrden">
+                                            <input type="hidden" id="descripcionID" name="descripcionID" class="form-control" th:text="${actual.codigoComponente}">
+                                            <button type="submit" class="btn btn-danger">Borrar</button>
+                                        </form>
+                                    </td>
+
                                 </tr>
                             </div>
                         </table>
                     </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" form="form1">Generar Orden</button>
+
+
                 </div>
             </div>
         </div>
@@ -101,6 +114,9 @@
 </div>
 
 <!-- Option 1: Bootstrap Bundle with Popper -->
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </body>
 </html>

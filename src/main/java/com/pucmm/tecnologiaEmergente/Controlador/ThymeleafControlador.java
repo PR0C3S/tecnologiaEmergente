@@ -1,33 +1,30 @@
 package com.pucmm.tecnologiaEmergente.Controlador;
 
 import com.pucmm.tecnologiaEmergente.Models.Componente;
-import com.pucmm.tecnologiaEmergente.Models.DetalleOrden;
-import com.pucmm.tecnologiaEmergente.Models.Ordenes;
 import com.pucmm.tecnologiaEmergente.Repositorios.ComponenteRepositorio;
-import com.pucmm.tecnologiaEmergente.Repositorios.DetalleRepositorio;
 import com.pucmm.tecnologiaEmergente.Repositorios.OrdenesRepositorio;
+import com.pucmm.tecnologiaEmergente.Repositorios.SuplidorRepositorio;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Controller
 @RequestMapping(path="/crud")
 public class ThymeleafControlador {
 
-    @Autowired
-    private DetalleRepositorio repositorioDetalle;
 
     @Autowired
-    private ComponenteRepositorio repositorioComponente;
+    private ComponenteRepositorio componenteRepositorio;
     @Autowired
-    private OrdenesRepositorio repositorioOrdenes;
+    private OrdenesRepositorio ordenesRepositorio;
+
+    @Autowired
+    private SuplidorRepositorio suplidorRepositorio;
 
     private HashMap<Componente, Integer> ordenesCarrito = new HashMap<Componente, Integer>();
 
@@ -54,7 +51,6 @@ public class ThymeleafControlador {
             attr.addAttribute("alerta","No se puede utilizar esta fecha, la solicutd de un pedido debe ser minimo 2 dias despues de la fecha actual.");
             return "redirect:/crud/generarOrden";
         }
-
         //VERIFICACION QUE NO SE HAYA GENERADO UN PEDIDO PARA ESA FECHA
 
         //FILTRO DE CALIDAD PRECIO CON AGGREGATES
@@ -66,31 +62,34 @@ public class ThymeleafControlador {
         return "redirect:/crud/verOrden";
     }
 
-    @PostMapping("/AddElement")
-    public String addElement(
-            @RequestParam("componente") String componente,
-            @RequestParam("cantidad") int cantidad, RedirectAttributes attr
-    ){
-        Optional<Componente> actComponente = repositorioComponente.findById(componente);
-        ordenesCarrito.put(actComponente.get(),cantidad);
-        attr.addAttribute("alerta","Se ha agregado el elemento: "+actComponente.get().getDescripcion()+" a la lista.");
-        return "redirect:/crud/generarOrden";
-    }
 
     @PostMapping("/deleteElement")
     public String deleteElement(
             @RequestParam("descripcionID") String descripcionID, RedirectAttributes attr
     ){
-        Optional<Componente> actComponente = repositorioComponente.findById(descripcionID);
-        ordenesCarrito.remove(actComponente.get());
-        attr.addAttribute("alerta","Se ha eliminado el elemento: "+actComponente.get().getDescripcion()+" de la lista.");
+        Componente actComponente = findComponentebyId(descripcionID);
+        if (actComponente==null){
+            attr.addAttribute("alerta","Error no se encontro el elemento: "+actComponente.getDescripcion()+" de la lista.");
+            return "redirect:/crud/generarOrden";
+        }
+        ordenesCarrito.remove(actComponente);
+        attr.addAttribute("alerta","Se ha eliminado el elemento: "+actComponente.getDescripcion()+" de la lista.");
         return "redirect:/crud/generarOrden";
+    }
+
+    private Componente findComponentebyId(String descripcionID) {
+        for (Componente act: ordenesCarrito.keySet()) {
+            if(act.getId().equals(descripcionID)){
+                return act;
+            }
+        }
+        return null;
     }
 
     @GetMapping("/listarOrdenes")
     public String  listarOrdenes(Model model)
     {
-        model.addAttribute("lista",repositorioOrdenes.findAll());
+        model.addAttribute("lista",suplidorRepositorio.findAll());
         return "VerOrdenes";
     }
 

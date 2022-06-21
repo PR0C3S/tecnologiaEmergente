@@ -7,14 +7,13 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "TiempoEntregaSuplidor")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 
 public class TiempoEntregaSuplidor {
 
     @Id
+    private String id;
     private int codigoSuplidor;
     private String codigoComponente;
     private float tiempoEntrega;
