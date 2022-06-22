@@ -66,7 +66,7 @@
                     </form>
                     <br>
 
-                    <form action="/AddElement" method="get">
+                    <form action="/crud/AddElement" method="post">
                         <div class="row">
                             <div class="col-2">
                                 <label for="componente" class="col-form-label">Componente:</label>
@@ -74,7 +74,7 @@
                             <div class="col-4">
                                 <select class="form-select is-invalid" id="componente" name="componente" required>
                                     <option selected disabled value="">< Seleccionar ></option>
-                                    <option th:each="compSel : ${componentesSel}" th:value="${compSel.codigoComponente}" th:text="${compSel.descripcion}"></option>
+                                    <option th:each="compSel : ${componentesSel}" th:value="${compSel.id}" th:text="${compSel.descripcion}"></option>
                                 </select>
                             </div>
                             <div class="col-2">
@@ -111,8 +111,8 @@
                                     <td th:text="${actual.key.unidad}"></td>
 
                                     <td>
-                                        <form action="/crud/DeleteOrden">
-                                            <input type="hidden" id="descripcionID" name="descripcionID" class="form-control" th:text="${actual.codigoComponente}">
+
+                                        <form th:action="@{/crud/deleteElement/} + ${actual.key.id}" method="post">
                                             <button type="submit" class="btn btn-danger">Borrar</button>
                                         </form>
                                     </td>

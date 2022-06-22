@@ -42,73 +42,69 @@
     </div>
 </nav>
 
-<div class="container text-center mt-5" >
-    <h1 th:text="${titulo}">Inventario</h1>
+<div class="container  mt-5" >
+    <h1 th:text="${titulo}" class="text-center">Inventario</h1>
+
+
+
 
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
-                    <form action="/crud/generarOrden" method="post" id="form1">
-                    <div class="row">
 
-                        <div class="col-2">
-                            <div class="input-daterange input-group" id="datepicker">
-                                <input type="text" class="input-sm form-control" name="start" />
-                                <span class="input-group-addon">Hasta</span>
-                                <input type="text" class="input-sm form-control" name="end" />
+                    <form action="/view/Element" method="post">
+                        <div class="row">
+                            <div class="col-2">
+                                <label for="componente" class="col-form-label">Componente:</label>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select is-invalid" id="componente" name="componente" required>
+                                    <option selected disabled value="">< Seleccionar ></option>
+                                    <option th:each="compSel : ${componentesSel}" th:value="${compSel.id}" th:text="${compSel.descripcion}"></option>
+                                </select>
+                            </div>
+
+                            <div class="col-4">
+                                <button class="btn btn-primary" type="submit">Generar movimiento</button>
                             </div>
                         </div>
-
-
-                        <div class="col-auto">
-                            <button type="button" class="btn btn-primary">
-                                Consumo diario <span class="badge bg-secondary">4</span>
-                            </button>
-                        </div>
-
-                    </div>
-                        <br>
                     </form>
-                    <div class="table-responsive">
+                    <br>
+                    <div class="table-responsive text-center">
                         <table class="table table-bordered table-hover">
                             <thead class="table-primary">
 
                             <tr>
-                                <th scope="col">Componente</th>
-                                <th scope="col">Descripcion</th>
-                                <th scope="col">Cantidad</th>
-                                <th scope="col">Unidad</th>
-                                <th scope="col">Accion</th>
+                                <th scope="col">Codigo Movimiento</th>
+                                <th scope="col">Fecha Movimiento</th>
+                                <th scope="col">Codigo Almacen</th>
+                                <th scope="col">Tipo Movimiento</th>
+                                <th scope="col">Cantidad de articulos del movimiento</th>
                             </tr>
                             </thead>
                             <tbody>
                             <div th:if="${lista.size() > 0}">
-                                <tr th:each="actual, stats : ${lista}">
-                                    <td th:text="${actual.key.codigoComponente}" ></td>
-                                    <td th:text="${actual.key.descripcion}"></td>
-                                    <td th:text="${actual.value}"></td>
-                                    <td th:text="${actual.key.unidad}"></td>
+                                <tr th:each="actual: ${lista}">
+                                    <td th:text="${actual.codigoMovimiento}" ></td>
+                                    <td th:text="${actual.fechaMovimiento}"></td>
+                                    <td th:text="${actual.codigoAlmacen}"></td>
+                                    <td th:text="${actual.tipoMovimiento}"></td>
+                                    <td th:text="${actual.detalle.size()}"></td>
 
-                                    <td>
-                                        <form action="/crud/DeleteOrden">
-                                            <input type="hidden" id="descripcionID" name="descripcionID" class="form-control" th:text="${actual.codigoComponente}">
-                                            <button type="submit" class="btn btn-danger">Borrar</button>
-                                        </form>
-                                    </td>
+
 
                                 </tr>
                             </div>
                         </table>
                     </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg" form="form1">Generar Orden</button>
-
-
                 </div>
             </div>
         </div>
     </div>
+
+
+
 
 </div>
 </div>

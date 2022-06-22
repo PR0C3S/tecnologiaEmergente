@@ -18,7 +18,7 @@ public class MovimientoInventario {
     @Id
     private String id;
     private int codigoMovimiento;
-    private LocalDate fechaMovimiento;
+    private LocalDate fechaMovimiento = LocalDate.now();
     private int codigoAlmacen;
     private String tipoMovimiento; //ENTREGA/SALIDA
     private List<DetalleInventario> detalle;

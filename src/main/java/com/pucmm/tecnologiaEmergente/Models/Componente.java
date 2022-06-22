@@ -22,4 +22,6 @@ public class Componente {
     private String unidad="UND";
     private List<Almacen> almacenes;
     private List<Orden> ordenados;
+
+
 }
