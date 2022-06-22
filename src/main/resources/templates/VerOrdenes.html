@@ -80,14 +80,14 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <div th:if="${listaMock != null}">
-                                <tr th:each="actual: ${listaMock}">
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
-                                    <td></td>
+                            <div th:if="${lista != null}">
+                                <tr th:each="actual: ${lista}">
+                                    <td th:text="${actual.codigoSuplidor}"></td>
+                                    <td th:text="${actual.nombre}"></td>
+                                    <td th:text="${actual.rnc}"></td>
+                                    <td th:text="${actual.ciudad}"></td>
+                                    <td th:text="${actual.direccion}"></td>
+                                    <td th:text="$actual.direccion}"></td>
                                 </tr>
                             </div>
                         </table>

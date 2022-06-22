@@ -42,31 +42,18 @@
     </div>
 </nav>
 
-<div class="container text-center mt-5" >
-    <h1 th:text="${titulo}">Generar Orden</h1>
-    <div class="alert alert-warning" role="alert" th:if="${alerta} != null" th:text="${alerta}">
-        Mensaje
-    </div>
+<div class="container  mt-5" >
+    <h1 th:text="${titulo}" class="text-center">Inventario</h1>
+
+
 
 
     <div class="row">
         <div class="col-sm-12">
             <div class="card">
                 <div class="card-body">
-                    <form action="/crud/generarOrden" method="post" id="form1">
-                    <div class="row">
 
-                        <div class="col-2">
-                            <label for="fecha" class="col-form-label">Fecha requerida:</label>
-                        </div>
-                        <div class="col-auto">
-                            <input type="date" id="fecha" name="fecha" class="form-control" required>
-                        </div>
-                    </div>
-                    </form>
-                    <br>
-
-                    <form action="/crud/AddElement" method="post">
+                    <form action="/view/Element" method="post">
                         <div class="row">
                             <div class="col-2">
                                 <label for="componente" class="col-form-label">Componente:</label>
@@ -77,58 +64,47 @@
                                     <option th:each="compSel : ${componentesSel}" th:value="${compSel.id}" th:text="${compSel.descripcion}"></option>
                                 </select>
                             </div>
-                            <div class="col-2">
-                                <label for="cantidad" class="col-form-label">Cantidad:</label>
-                            </div>
-                            <div class="col-2">
-                                <input type="number" id="cantidad" name="cantidad" class="form-control" min="1" value="1">
-                            </div>
-                            <div class="col-2">
-                                <button class="btn btn-primary" type="submit">Agregar</button>
+
+                            <div class="col-4">
+                                <button class="btn btn-primary" type="submit">Generar movimiento</button>
                             </div>
                         </div>
                     </form>
-
                     <br>
-                    <div class="table-responsive">
+                    <div class="table-responsive text-center">
                         <table class="table table-bordered table-hover">
                             <thead class="table-primary">
 
                             <tr>
-                                <th scope="col">Componente</th>
-                                <th scope="col">Descripcion</th>
-                                <th scope="col">Cantidad</th>
-                                <th scope="col">Unidad</th>
-                                <th scope="col">Accion</th>
+                                <th scope="col">Codigo Movimiento</th>
+                                <th scope="col">Fecha Movimiento</th>
+                                <th scope="col">Codigo Almacen</th>
+                                <th scope="col">Tipo Movimiento</th>
+                                <th scope="col">Cantidad de articulos del movimiento</th>
                             </tr>
                             </thead>
                             <tbody>
                             <div th:if="${lista.size() > 0}">
-                                <tr th:each="actual, stats : ${lista}">
-                                    <td th:text="${actual.key.codigoComponente}" ></td>
-                                    <td th:text="${actual.key.descripcion}"></td>
-                                    <td th:text="${actual.value}"></td>
-                                    <td th:text="${actual.key.unidad}"></td>
+                                <tr th:each="actual: ${lista}">
+                                    <td th:text="${actual.codigoMovimiento}" ></td>
+                                    <td th:text="${actual.fechaMovimiento}"></td>
+                                    <td th:text="${actual.codigoAlmacen}"></td>
+                                    <td th:text="${actual.tipoMovimiento}"></td>
+                                    <td th:text="${actual.detalle.size()}"></td>
 
-                                    <td>
 
-                                        <form th:action="@{/crud/deleteElement/} + ${actual.key.id}" method="post">
-                                            <button type="submit" class="btn btn-danger">Borrar</button>
-                                        </form>
-                                    </td>
 
                                 </tr>
                             </div>
                         </table>
                     </div>
-
-                    <button type="submit" class="btn btn-primary btn-lg" form="form1">Generar Orden</button>
-
-
                 </div>
             </div>
         </div>
     </div>
+
+
+
 
 </div>
 </div>
@@ -136,5 +112,7 @@
 <!-- Option 1: Bootstrap Bundle with Popper -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 </body>
 </html>

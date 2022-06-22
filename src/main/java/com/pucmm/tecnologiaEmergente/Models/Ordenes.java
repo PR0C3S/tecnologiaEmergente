@@ -9,19 +9,19 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 
-@Document(collection = "DetalleOrden")
+@Document(collection = "Ordenes")
 @Data
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 
 public class Ordenes {
 
     @Id
+    private String id;
     private int numeroOrden;
     private int codigoSuplidor;
     private String ciudadSuplidor;
     private LocalDate fechaOrden;
+    private LocalDate fechaEntrega;
     private float montoTotal;
 }
