@@ -38,8 +38,8 @@ public interface ComponenteRepositorio extends MongoRepository<Componente, Strin
                 "        path: \"$ordenados\"\n" +
                 "    }}",
             " {$match: {\n" +
-                    "        codigoComponente: 5,\n" +
-                    "        \"ordenados.fechaEntrega\":{$lte: limSupFecha}\n" +
+                    "        codigoComponente: ?0,\n" +
+                    "        \"ordenados.fechaEntrega\":{$lte: ?1}\n" +
                     "    }}",
             "{$group: {\n" +
                     "        _id: {codigoComponente: \"$codigoComponente\",descripcion: \"$descripcion\"},\n" +
