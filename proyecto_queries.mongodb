@@ -1,0 +1,93 @@
+//* get all Ordenes de compra
+db.tareaDB.find([]);
+
+//get todas ordenes de compra dentro de un rango de fechas
+limInfFecha = new Date("2019-06-01"); 
+limSupFecha = new Date(); 
+db.Orden.aggregate([
+    {$match: { "fechaOrden": { $gte: limInfFecha, $lte: limSupFecha } } },
+    { $lookup : { from: "DetalleOrden", localField: "numeroOrden", foreignField: "numeroOrden", as: "Detalles" } },
+]);
+
+//get todas ordenes de compra que se le hizo a un suplidor
+idSup = 2;
+db.Orden.aggregate([
+    {$match: { "codigoSuplidor": idSup } },
+    { $lookup : { from: "DetalleOrden", localField: "numeroOrden", foreignField: "numeroOrden", as: "Detalles" } },
+]);
+
+//get todas ordenes de compra que se le hizo a un suplidor dentro de un rango de fechas.
+limInfFecha = new Date("2019-06-01"); //ISODate("2019-07-01T00:00:00.0Z")
+limSupFecha = new Date(); //ISODate("2022-07-01T00:00:00.0Z")
+idSup = 2;
+db.Orden.aggregate([
+    {$match: { "fechaOrden": { $gte: limInfFecha, $lte: limSupFecha } } },
+    {$match: { "codigoSuplidor": idSup } },
+    { $lookup : { from: "DetalleOrden", localField: "numeroOrden", foreignField: "numeroOrden", as: "Detalles" } },
+]);
+
+
+//==============================REGISTRO ENTRADAS/SALIDAS================pseudo codigo================================
+entrada: MovimientoInventario ()
+    crear MovimientoInventario
+
+    for componente in MovimientoInventario.detalles{//actualizar Componente (sumar o restar balance) segun Moviemiento
+        find Componente
+        for almacen in componente.almacenes{
+            if almacen.codigoAlmacen == MovimientoInventario.codigoAlmacen{
+                actualizar balance en almacen
+            }
+        }
+    }
+    
+    si es una entrada, quitar la entrada en ordenados[] correspondiente
+    guardar MovimientoInventario
+salida: void
+
+//===============================GENERAR ORDEN AUTOMATICA=====================pseudo codigo==========================
+entrada: (cuales productos, cantidad_stock_que_quiero, fecha para la que se quiere) List<Peticion> //Peticion seria un nuevo objeto disenado para recibir este tipo de peticiones
+
+new List<OrdenCompra>;//lista vacia
+
+    for peticion in List<Peticion>{
+    
+    detalle = new DetallesOrden();
+    consumo_diario = find_consumo_diario(codigoComponente); >> mongo
+    consumo_total = dias_hasta_fecha_objetivo * consumo //se podria conseguir consumo total directo desde el query en mongo.
+
+    if ((stockEsperado - consumo_total) > peticion.cantidad_stock_que_quiero){
+        //ya va haber suficiente stock, me salto esta peticion
+
+    }else{// si no va a haber suficiente stock, busco el mejor suplidor
+        mejor_suplidor = find_mejor_suplidor(peticion.codigoComponente, peticion.fecha) >> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
+
+        llenar parametros de detalle;//con mejor_suplidor lleno los parametros de detalle(codigoSuplidor, precio, descuento...), almacen al que se pide es un numero random del 1 al 3.
+        
+        //falta manejo de caso cuando no encuentra un suplidor.
+
+        guardar(detalle);
+        //actualizar Componente.ordenados[] con el recien creado DetalleOrden
+        componente = find_Componente(peticion.codigoComponente);
+        componente.ordenados.append(new Obj(codigoAlmacen, cantidadComprada, mejor_suplidor.fechaEntrega)); //almacen al que se pide es un numero random del 1 al 3.
+        
+        if (mejor_suplidor.codigoSuplidor == orden.codigoSuplidor){//si ya hay una orden creada para mejor_suplidor, agrego ese numeroOrden al recien creado DetalleOrden
+
+        }else{//si no, creo una nueva Orden y agrego ese numeroOrden al recien creado DetalleOrden
+            nueva_orden = new Orden();
+            List<OrdenCompra>.append(nueva_orden);
+        }
+    } 
+}
+
+for orden in List<OrdenCompra>{
+    guardar orden;
+}
+
+return List<OrdenCompra>; // o void
+salida: void
+
+
+//==============================================================================
+//por cada componente, listar suplidores que los suplen, el tiempo de entrga, precio, porciento descuento y si esta activo o no.
+
+db.tareaDB.find([]);
