@@ -29,7 +29,7 @@ public interface ComponenteRepositorio extends MongoRepository<Componente, Strin
                     "        balanceTotal: \"$balanceTotal\"\n" +
                     "    }}"
     })
-    AggregationResults<Document> findComponenteCantidad(int codigoComponente);
+    AggregationResults<Document> findComponenteCantidad(String codigoComponente);
 
 
 
@@ -52,6 +52,6 @@ public interface ComponenteRepositorio extends MongoRepository<Componente, Strin
                     "        totalEntregados: \"$totalEntregados\"\n" +
                     "    }}"
     })
-    AggregationResults<Document> findComponenteOrdendos(int codigoComponente, LocalDate fecha);
+    AggregationResults<Document> findComponenteOrdendos(String codigoComponente, LocalDate fecha);
 
 }

@@ -13,6 +13,6 @@ import java.time.LocalDate;
 
 public class Orden {
     private int codigoAlmacen;
-    private int cantidadComprada;
+    private float cantidadComprada;
     private LocalDate fechaEntrega;
 }

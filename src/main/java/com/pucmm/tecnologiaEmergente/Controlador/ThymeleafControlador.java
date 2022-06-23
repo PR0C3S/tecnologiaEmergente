@@ -10,10 +10,7 @@ import com.pucmm.tecnologiaEmergente.Models.Componente;
 import com.pucmm.tecnologiaEmergente.Models.DetalleOrden;
 import com.pucmm.tecnologiaEmergente.Models.MovimientoInventario;
 import com.pucmm.tecnologiaEmergente.Models.Ordenes;
-import com.pucmm.tecnologiaEmergente.Repositorios.ComponenteRepositorio;
-import com.pucmm.tecnologiaEmergente.Repositorios.MovimientoInventarioRepositorio;
-import com.pucmm.tecnologiaEmergente.Repositorios.OrdenesRepositorio;
-import com.pucmm.tecnologiaEmergente.Repositorios.SuplidorRepositorio;
+import com.pucmm.tecnologiaEmergente.Repositorios.*;
 import org.bson.Document;
 import org.bson.json.JsonObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +41,11 @@ public class ThymeleafControlador {
 
     @Autowired
     private SuplidorRepositorio suplidorRepositorio;
+    @Autowired
+    private DetalleOrdenRepositorio detalleOrdenRepositorio;
+
+    @Autowired
+    private TiempoEntregaSuplidorRepositorio tiempoEntregaSuplidorRepositorio;
 
     private HashMap<Componente, Integer> ordenesCarrito = new HashMap<Componente, Integer>();
 
@@ -64,21 +66,22 @@ public class ThymeleafControlador {
 
     @PostMapping("/generarOrden")
     public String generarOrdenSave(@RequestParam("fecha") String fecha, RedirectAttributes attr){
-        
-        ArrayList<Ordenes> ordenes = new ArrayList();
 
-        for (Map.Entry<Componente,Integer> peticion: ordenesCarrito.entrySet()){
-
-            if(ordenesCarrito.size() ==0){
-                attr.addAttribute("alerta","No se puede procesar la orden, no hay componentes en la lista");
-                return "redirect:/crud/generarOrden";
-            }
+        if(ordenesCarrito.size() ==0){
+            attr.addAttribute("alerta","No se puede procesar la orden, no hay componentes en la lista");
+            return "redirect:/crud/generarOrden";
+        }
     
-            LocalDate fechaDeseada = LocalDate.parse(fecha);
-            if(fechaDeseada.isBefore(LocalDate.now().plusDays(2))){
-                attr.addAttribute("alerta","No se puede utilizar esta fecha, la solicutd de un pedido debe ser minimo 2 dias despues de la fecha actual.");
-                return "redirect:/crud/generarOrden";
-            }
+        LocalDate fechaDeseada = LocalDate.parse(fecha);
+        if(fechaDeseada.isBefore(LocalDate.now().plusDays(2))){
+            attr.addAttribute("alerta","No se puede utilizar esta fecha, la solicutd de un pedido debe ser minimo 2 dias despues de la fecha actual.");
+            return "redirect:/crud/generarOrden";
+        }
+        LocalDate fechaNow = LocalDate.now();
+        Random aleatorio = new Random();
+
+        ArrayList<Ordenes> ordenes = new ArrayList();
+        for (Componente peticion: ordenesCarrito.keySet()){
     
             //calcular dias
             LocalDate today = LocalDate.now(ZoneId.systemDefault());
@@ -87,76 +90,82 @@ public class ThymeleafControlador {
             Document dc = output.getUniqueMappedResult();
             int cantidad = (int) dc.get("totalConsumidos");
             int dias= (int) DAYS.between(anterior, today);
-            int consumoDiario =cantidad/dias;
-            int consumoTotal = consumoDiario * (int)DAYS.between(today, fechaDeseada);
-    
-            int stockEsperado = findStock(peticion.getKey().getId(), fechaDeseada); //suma de inventarios de componentes y los que vienen ordenados[]
+
+            int diasPedido = (int)DAYS.between(today, fechaDeseada);
+            //int consumoDiario =cantidad/dias;
+            int consumoTotal = (cantidad/dias) * diasPedido;
+
+            AggregationResults<Document> output1 = componenteRepositorio.findComponenteCantidad(peticion.getCodigoComponente());
+            int balanceTotal = (int) dc.get("balanceTotal");
+
+            AggregationResults<Document> output2 = componenteRepositorio.findComponenteOrdendos(peticion.getId(), fechaDeseada);
+            int totalEntregados = (int) dc.get("totalEntregados");
+            int stockEsperado = balanceTotal+totalEntregados;
             int stockRealEsperado = stockEsperado - consumoTotal; 
     
-            if (stockEsperado > peticion.getValue()){ //si ya va haber suficiente stock, me salto esta peticion
-                printf("No se genero orden de compra para producto de codigo: " + peticion.getKey() + ". \n se proyecta que va haber suficiente stock");
-                break;
-
+            if (stockEsperado > ordenesCarrito.get(peticion)){ //si ya va haber suficiente stock, me salto esta peticion
+                System.out.println("No se genero orden de compra para producto : " + peticion.getDescripcion() + ". \n se proyecta que va haber suficiente stock");
             }else{// si no va a haber suficiente stock, busco el mejor suplidor
         
-                int cantidad_comprar = stockEsperado - peticion.getValue();
-                mejor_suplidor = find_mejor_suplidor(fechaDeseada, peticion.getKey().getId(), cantidad_comprar); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
-                
-                if (mejor_suplidor == null){ //query no encontro suplidor que pueda cumplir requisitos.
-                    printf("No se existe suplidor que cumpla con los requisitos para producto de codigo: " + peticion.getKey());
-                    break;
-                }
-        
-                DetalleOrden detalle = new DetalleOrden(
-                _, //codigoDetalle
-                 _, //numeroOrden, se queda vacio, se agrega mas adelante
-                random(1,3), //codigoAlmacen, se elige aleatoriamente
-                peticion.getKey(), //codigoComponente 
-                cantidad_comprar, //cantidadComprada 
-                mejor_suplidor.precio, //precioCompra 
-                "UND", //unidadCompra = 
-                mejor_suplidor.descuento, //porcientoDescuento = 
-                mejor_suplidor.montoTotal //montoDetalle = 
-                calcular_fecha(mejor_suplidor.tiempoEntrega); //fechaEntrega // funcion suma la fecha actual + la cantidad de dias que diga mejor_suplidor.tiempoEntrega 
-                );
-
-                
-                int bandera = 0; //buscar manera mas eficiente de hacer esta parte
-                for (int i = 0;i < ordenes.size(); i++){
-                    if (ordenes.get(i).codigoSuplidor == mejor_suplidor.codigoSuplidor){
-                        bandera = i;
-                    }
-                }
-                if (bandera != 0){
-                    Ordenes orden = ordenes.get(bandera);
-                    detalle.numeroOrden = orden.numeroOrden; //relaciono DetalleOrden con Orden
-                    orden.montoTotal += detalle.montoDetalle; //actualizo monto total en Orden
-        
+                int cantidad_comprar = stockEsperado - ordenesCarrito.get(peticion);
+                AggregationResults<Document> output3 = tiempoEntregaSuplidorRepositorio.selectSuplidor(fechaDeseada, peticion.getCodigoComponente(), cantidad_comprar, diasPedido); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
+                Document mejor_suplidor = output.getUniqueMappedResult();
+                if (mejor_suplidor.isEmpty()){ //query no encontro suplidor que pueda cumplir requisitos.
+                    System.out.println("No se existe suplidor que cumpla con los requisitos para producto: " + peticion.getDescripcion());
                 }else{
-        
-                    Ordenes nueva_orden = new Ordenes(
-                    _, //numeroOrden
-                    mejor_suplidor.ciudad, //ciudadSuplidor = 
-                    LocalDate.now(), // fechaOrden
-                    detalle.montoTotal //montoTotal = 
-                    );
+                    DetalleOrden detalle = new DetalleOrden();
+                    detalle.setCodigoDetalle((int) mejor_suplidor.get("codigoDetalle"));//codigoDetalle
 
-                    detalle.numeroOrden = nueva_orden.numeroOrden;
-                    ordenes.add(nueva_orden);
+                    detalle.setCodigoAlmacen(aleatorio.nextInt(3)+1); //codigoAlmacen, se elige aleatoriamente
+                    detalle.setCodigoComponente(peticion.getCodigoComponente()); //codigoComponente
+                    detalle.setCantidadComprada(cantidad_comprar); //cantidadComprada
+                    detalle.setPrecioCompra((int) mejor_suplidor.get("precioCompra"));//precioCompra
+                    detalle.setPorcientoDescuento((int) mejor_suplidor.get("porcientoDescuento"));//porcientoDescuento
+                    detalle.setMontoDetalle((int) mejor_suplidor.get("montoDetalle")); //montoDetalle
+                    LocalDate fechaEntrega =  LocalDate.now().plusDays((long) mejor_suplidor.get("tiempoEntrega")); //fechaEntrega // funcion suma la fecha actual + la cantidad de dias que diga mejor_suplidor.tiempoEntrega
+                    detalle.setFechaEntrega(fechaEntrega);
+
+
+                    int bandera = 0; //buscar manera mas eficiente de hacer esta parte
+                    for (int i = 0;i < ordenes.size(); i++){
+                        if (ordenes.get(i).getCodigoSuplidor() == (int) mejor_suplidor.get("codigoSuplidor")){
+                            bandera = i;
+                        }
+                    }
+
+                    if (bandera != 0){
+                        Ordenes orden = ordenes.get(bandera);
+                        detalle.setNumeroOrden(orden.getNumeroOrden());   //relaciono DetalleOrden con Orden
+                        orden.setMontoTotal(detalle.getMontoDetalle()); //actualizo monto total en Orden
+
+                    }else{
+
+                        Ordenes nueva_orden = new Ordenes();
+                        nueva_orden.setFechaOrden(fechaEntrega); //fecha entrega
+                        nueva_orden.setCiudadSuplidor((String) mejor_suplidor.get("ciudadSuplidor"));//ciudadSuplidor
+                        nueva_orden.setMontoTotal(detalle.getMontoDetalle());//montoTotal
+                        detalle.setNumeroOrden(nueva_orden.getNumeroOrden());
+                        ordenes.add(nueva_orden);
+                    }
+
+                    //actualizar Componente.ordenados[] con el recien creado DetalleOrden
+                    Optional<Componente> opt = componenteRepositorio.findById(peticion.getId()); //crud find
+                    Componente actC = opt.get();
+
+                    actC.getOrdenados().add((new Orden(detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
+                    componenteRepositorio.save(actC);
+
+                    //guardar detalle
+                    detalleOrdenRepositorio.save(detalle);
                 }
+        
 
-                //actualizar Componente.ordenados[] con el recien creado DetalleOrden
-                componente = find_Componente(peticion.codigoComponente); //crud find
-                componente.ordenados.append(new Obj(detalle.codigoAlmacen, detalle.cantidadComprada, detalle.fechaEntrega)); //almacen al que se pide es un numero random del 1 al 3.
-                repo_update(componen);
-                //guardar detalle
-                repo_guardar(detalle);
             }
         }
         
 
         for (Ordenes orden : ordenes){
-            repo_guardar(orden);
+            ordenesRepositorio.save(orden);
         }
         ordenesCarrito = new HashMap<Componente, Integer>();
         return "redirect:/crud/verOrden";

@@ -4,6 +4,8 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDate;
+
 @Document(collection = "DetalleOrden")
 @Data
 @NoArgsConstructor
@@ -22,4 +24,6 @@ public class DetalleOrden {
     private String unidadCompra ="UND";
     private float porcientoDescuento;
     private float montoDetalle;
+    private LocalDate fechaEntrega;
+
 }

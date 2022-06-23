@@ -22,6 +22,5 @@ public class Ordenes {
     private int codigoSuplidor;
     private String ciudadSuplidor;
     private LocalDate fechaOrden;
-    private LocalDate fechaEntrega;
     private float montoTotal;
 }
