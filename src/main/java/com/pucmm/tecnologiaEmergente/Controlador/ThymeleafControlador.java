@@ -19,9 +19,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.websocket.server.PathParam;
 import java.time.LocalDate;
+import javax.websocket.server.PathParam;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -77,10 +76,10 @@ public class ThymeleafControlador {
             attr.addAttribute("alerta","No se puede utilizar esta fecha, la solicutd de un pedido debe ser minimo 2 dias despues de la fecha actual.");
             return "redirect:/crud/generarOrden";
         }
-        LocalDate fechaNow = LocalDate.now();
+
         Random aleatorio = new Random();
 
-        ArrayList<Ordenes> ordenes = new ArrayList();
+        ArrayList<Ordenes> ordenes = new ArrayList<>();
         for (Componente peticion: ordenesCarrito.keySet()){
     
             //calcular dias
@@ -92,25 +91,27 @@ public class ThymeleafControlador {
             int dias= (int) DAYS.between(anterior, today);
 
             int diasPedido = (int)DAYS.between(today, fechaDeseada);
-            //int consumoDiario =cantidad/dias;
             int consumoTotal = (cantidad/dias) * diasPedido;
 
             AggregationResults<Document> output1 = componenteRepositorio.findComponenteCantidad(peticion.getCodigoComponente());
+            dc = output1.getUniqueMappedResult();
             int balanceTotal = (int) dc.get("balanceTotal");
 
             AggregationResults<Document> output2 = componenteRepositorio.findComponenteOrdendos(peticion.getId(), fechaDeseada);
+            dc = output2.getUniqueMappedResult();
             int totalEntregados = (int) dc.get("totalEntregados");
             int stockEsperado = balanceTotal+totalEntregados;
             int stockRealEsperado = stockEsperado - consumoTotal; 
     
-            if (stockEsperado > ordenesCarrito.get(peticion)){ //si ya va haber suficiente stock, me salto esta peticion
+            if (stockRealEsperado > ordenesCarrito.get(peticion)){ //si ya va haber suficiente stock, me salto esta peticion
                 System.out.println("No se genero orden de compra para producto : " + peticion.getDescripcion() + ". \n se proyecta que va haber suficiente stock");
             }else{// si no va a haber suficiente stock, busco el mejor suplidor
         
                 int cantidad_comprar = stockEsperado - ordenesCarrito.get(peticion);
                 AggregationResults<Document> output3 = tiempoEntregaSuplidorRepositorio.selectSuplidor(peticion.getCodigoComponente(), cantidad_comprar, diasPedido); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
-                Document mejor_suplidor = output.getUniqueMappedResult();
-                if (mejor_suplidor.isEmpty()){ //query no encontro suplidor que pueda cumplir requisitos.
+                Document mejor_suplidor = output3.getUniqueMappedResult();
+
+                if (mejor_suplidor == null  || mejor_suplidor.isEmpty()){ //query no encontro suplidor que pueda cumplir requisitos.
                     System.out.println("No se existe suplidor que cumpla con los requisitos para producto: " + peticion.getDescripcion());
                 }else{
                     DetalleOrden detalle = new DetalleOrden();
@@ -126,7 +127,7 @@ public class ThymeleafControlador {
                     detalle.setFechaEntrega(fechaEntrega);
 
 
-                    int bandera = 0; //buscar manera mas eficiente de hacer esta parte
+                    int bandera = 0;
                     for (int i = 0;i < ordenes.size(); i++){
                         if (ordenes.get(i).getCodigoSuplidor() == (int) mejor_suplidor.get("codigoSuplidor")){
                             bandera = i;
@@ -150,16 +151,16 @@ public class ThymeleafControlador {
 
                     //actualizar Componente.ordenados[] con el recien creado DetalleOrden
                     Optional<Componente> opt = componenteRepositorio.findById(peticion.getId()); //crud find
-                    Componente actC = opt.get();
+                    if (opt.isPresent()){
+                        Componente actC = opt.get();
 
-                    actC.getOrdenados().add((new Orden(detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
-                    componenteRepositorio.save(actC);
-
+                        actC.getOrdenados().add((new Orden(detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
+                        componenteRepositorio.save(actC);
+                    }
+                    
                     //guardar detalle
                     detalleOrdenRepositorio.save(detalle);
                 }
-        
-
             }
         }
         
