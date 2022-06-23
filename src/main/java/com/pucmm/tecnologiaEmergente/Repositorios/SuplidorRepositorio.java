@@ -10,4 +10,7 @@ public interface SuplidorRepositorio extends MongoRepository<Suplidor, String> {
 
     @Query("{ 'rnc' : ?0 }")
     List<Suplidor> findByRnc(String rnc);
+
+    @Query("{ 'codigoSuplidor' : ?0 }")
+    Suplidor findByCodigoSuplidor(int codigoSuplidor);
 }

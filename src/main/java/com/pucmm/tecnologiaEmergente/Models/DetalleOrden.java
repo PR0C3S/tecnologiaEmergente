@@ -14,16 +14,15 @@ import java.time.LocalDate;
 public class DetalleOrden {
 
     @Id
-    private String id;
-    private int codigoDetalle;
-    private int numeroOrden;
+    private String codigoDetalle;
+    private String numeroOrden;
     private int codigoAlmacen;
     private int codigoComponente;
-    private float cantidadComprada;
-    private float precioCompra;
+    private int cantidadComprada;
+    private int precioCompra;
     private String unidadCompra ="UND";
-    private float porcientoDescuento;
-    private float montoDetalle;
+    private int porcientoDescuento;
+    private Double montoDetalle;
     private LocalDate fechaEntrega;
 
 }

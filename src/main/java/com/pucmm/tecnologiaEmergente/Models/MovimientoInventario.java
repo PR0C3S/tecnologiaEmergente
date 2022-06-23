@@ -16,7 +16,6 @@ import java.util.List;
 public class MovimientoInventario {
 
     @Id
-    private String id;
     private int codigoMovimiento;
     private LocalDate fechaMovimiento = LocalDate.now();
     private int codigoAlmacen;

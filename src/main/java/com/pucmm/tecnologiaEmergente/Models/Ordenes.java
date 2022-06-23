@@ -18,9 +18,10 @@ public class Ordenes {
 
     @Id
     private String id;
-    private int numeroOrden;
+    private String numeroOrden;
     private int codigoSuplidor;
     private String ciudadSuplidor;
     private LocalDate fechaOrden;
-    private float montoTotal;
+    private Double montoTotal;
 }
+

@@ -10,6 +10,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 
 public class Almacen {
-    private int codigoAlmacen;
+    private int  codigoAlmacen;
     private int balancaeAlmacen;
 }

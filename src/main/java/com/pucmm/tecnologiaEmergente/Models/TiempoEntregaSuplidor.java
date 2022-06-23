@@ -16,7 +16,7 @@ public class TiempoEntregaSuplidor {
     private String id;
     private int codigoSuplidor;
     private int codigoComponente;
-    private float tiempoEntrega;
+    private int tiempoEntrega;
     private float precio;
     private float descuento;
     private String activo; //"S/N"

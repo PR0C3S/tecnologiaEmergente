@@ -3,16 +3,15 @@ package com.pucmm.tecnologiaEmergente.Controlador;
 import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.pucmm.tecnologiaEmergente.Models.*;
 import com.pucmm.tecnologiaEmergente.Models.Complementos.Almacen;
 import com.pucmm.tecnologiaEmergente.Models.Complementos.DetalleInventario;
 import com.pucmm.tecnologiaEmergente.Models.Complementos.Orden;
-import com.pucmm.tecnologiaEmergente.Models.Componente;
-import com.pucmm.tecnologiaEmergente.Models.DetalleOrden;
-import com.pucmm.tecnologiaEmergente.Models.MovimientoInventario;
-import com.pucmm.tecnologiaEmergente.Models.Ordenes;
+import com.pucmm.tecnologiaEmergente.Models.Complementos.VerComponenteOrden;
 import com.pucmm.tecnologiaEmergente.Repositorios.*;
 import org.bson.Document;
 import org.bson.json.JsonObject;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Controller;
@@ -60,6 +59,7 @@ public class ThymeleafControlador {
         if(!alerta.equals("")){
             model.addAttribute("alerta",alerta);
         }
+
         return "GenerarOrden";
     }
 
@@ -67,7 +67,7 @@ public class ThymeleafControlador {
     public String generarOrdenSave(@RequestParam("fecha") String fecha, RedirectAttributes attr){
 
         if(ordenesCarrito.size() ==0){
-            attr.addAttribute("alerta","No se puede procesar la orden, no hay componentes en la lista");
+            attr.addAttribute("alerta","No se puede procesar la orden, no hay componentes en la lista.");
             return "redirect:/crud/generarOrden";
         }
     
@@ -79,12 +79,14 @@ public class ThymeleafControlador {
 
         Random aleatorio = new Random();
 
+        ArrayList<VerComponenteOrden> listaVerOrdenes= new ArrayList<>();
         ArrayList<Ordenes> ordenes = new ArrayList<>();
+        String mensaje="";
         for (Componente peticion: ordenesCarrito.keySet()){
     
             //calcular dias
             LocalDate today = LocalDate.now(ZoneId.systemDefault());
-            LocalDate anterior = today.minusYears(3);
+            LocalDate anterior = today.minusYears(1);
             AggregationResults<Document> output = movimientoInventarioRepositorio.findByTipoMovimientoAndFecha(7,anterior,today);
             Document dc = output.getUniqueMappedResult();
             int cantidad = (int) dc.get("totalConsumidos");
@@ -99,77 +101,106 @@ public class ThymeleafControlador {
 
             AggregationResults<Document> output2 = componenteRepositorio.findComponenteOrdendos(peticion.getCodigoComponente(), fechaDeseada);
             dc = output2.getUniqueMappedResult();
-            int totalEntregados = (int) dc.get("totalEntregados");
+            int totalEntregados  = 0;
+            if(dc != null){
+                totalEntregados = (int) dc.get("totalEntregados");
+            }
+
             int stockEsperado = balanceTotal+totalEntregados;
-            int stockRealEsperado = stockEsperado - consumoTotal; 
+            int stockRealEsperado =  stockEsperado - consumoTotal;
     
             if (stockRealEsperado > ordenesCarrito.get(peticion)){ //si ya va haber suficiente stock, me salto esta peticion
-                System.out.println("No se genero orden de compra para producto : " + peticion.getDescripcion() + ". \n se proyecta que va haber suficiente stock");
+               mensaje+= "No se genero orden de compra para producto : " + peticion.getDescripcion() + ", se proyecta que va haber suficiente en inventario.\n";
+
             }else{// si no va a haber suficiente stock, busco el mejor suplidor
         
-                int cantidad_comprar = stockEsperado - ordenesCarrito.get(peticion);
+                int cantidad_comprar =   Math.abs(stockRealEsperado - ordenesCarrito.get(peticion));
                 AggregationResults<Document> output3 = tiempoEntregaSuplidorRepositorio.selectSuplidor(peticion.getCodigoComponente(), cantidad_comprar, diasPedido); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
                 Document mejor_suplidor = output3.getUniqueMappedResult();
 
                 if (mejor_suplidor == null  || mejor_suplidor.isEmpty()){ //query no encontro suplidor que pueda cumplir requisitos.
-                    System.out.println("No se existe suplidor que cumpla con los requisitos para producto: " + peticion.getDescripcion());
+                    mensaje+="No existe suplidor que cumpla con los requisitos para producto: " + peticion.getDescripcion()+".\n";
                 }else{
                     DetalleOrden detalle = new DetalleOrden();
-                    detalle.setCodigoDetalle((int) mejor_suplidor.get("codigoDetalle"));//codigoDetalle
-
+                    //detalle.setCodigoDetalle((int) mejor_suplidor.get("codigoDetalle"));//codigoDetalle
                     detalle.setCodigoAlmacen(aleatorio.nextInt(3)+1); //codigoAlmacen, se elige aleatoriamente
                     detalle.setCodigoComponente(peticion.getCodigoComponente()); //codigoComponente
                     detalle.setCantidadComprada(cantidad_comprar); //cantidadComprada
-                    detalle.setPrecioCompra((int) mejor_suplidor.get("precioCompra"));//precioCompra
-                    detalle.setPorcientoDescuento((int) mejor_suplidor.get("porcientoDescuento"));//porcientoDescuento
-                    detalle.setMontoDetalle((int) mejor_suplidor.get("montoDetalle")); //montoDetalle
-                    LocalDate fechaEntrega =  LocalDate.now().plusDays((long) mejor_suplidor.get("tiempoEntrega")); //fechaEntrega // funcion suma la fecha actual + la cantidad de dias que diga mejor_suplidor.tiempoEntrega
+                    detalle.setPrecioCompra((int) mejor_suplidor.get("precio"));//precioCompra
+                    detalle.setPorcientoDescuento((int) mejor_suplidor.get("descuento"));//porcientoDescuento
+                    detalle.setMontoDetalle((Double) mejor_suplidor.get("montoTotal")); //montoDetalle
+                    LocalDate fechaEntrega =  LocalDate.now().plusDays(Long.valueOf( ((int) mejor_suplidor.get("tiempoEntrega")))); //fechaEntrega // funcion suma la fecha actual + la cantidad de dias que diga mejor_suplidor.tiempoEntrega
                     detalle.setFechaEntrega(fechaEntrega);
 
+                    Suplidor suplidor = suplidorRepositorio.findByCodigoSuplidor((int) mejor_suplidor.get("codigoSuplidor"));
 
-                    int bandera = 0;
-                    for (int i = 0;i < ordenes.size(); i++){
-                        if (ordenes.get(i).getCodigoSuplidor() == (int) mejor_suplidor.get("codigoSuplidor")){
-                            bandera = i;
-                        }
-                    }
-
-                    if (bandera != 0){
-                        Ordenes orden = ordenes.get(bandera);
-                        detalle.setNumeroOrden(orden.getNumeroOrden());   //relaciono DetalleOrden con Orden
-                        orden.setMontoTotal(detalle.getMontoDetalle()); //actualizo monto total en Orden
-
-                    }else{
-
-                        Ordenes nueva_orden = new Ordenes();
-                        nueva_orden.setFechaOrden(fechaEntrega); //fecha entrega
-                        nueva_orden.setCiudadSuplidor((String) mejor_suplidor.get("ciudadSuplidor"));//ciudadSuplidor
-                        nueva_orden.setMontoTotal(detalle.getMontoDetalle());//montoTotal
-                        detalle.setNumeroOrden(nueva_orden.getNumeroOrden());
-                        ordenes.add(nueva_orden);
-                    }
+                    //verificar si existe una orden para este suplidor en la que se esta creando
+                    int index = verificarNumeroOrdenBySuplidor(ordenes, suplidor.getCodigoSuplidor());
 
                     //actualizar Componente.ordenados[] con el recien creado DetalleOrden
                     Optional<Componente> opt = componenteRepositorio.findById(peticion.getId()); //crud find
-                    if (opt.isPresent()){
-                        Componente actC = opt.get();
-
-                        actC.getOrdenados().add((new Orden(detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
-                        componenteRepositorio.save(actC);
+                    Componente actC = opt.get();
+                    if (actC.getOrdenados() == null){
+                        actC.setOrdenados(new ArrayList<Orden>());
                     }
-                    
-                    //guardar detalle
+
+                    if (index >=0){
+                        //Se ha pedido, Se ha actualiza el monto total de esta orden porque se ha pedido a este suplidor anteriormente
+                        ordenes.get(index).setMontoTotal(ordenes.get(index).getMontoTotal()+detalle.getMontoDetalle()); //actualizo monto total en Orden
+                        String numeroOrden=ordenes.get(index).getNumeroOrden();
+
+                        //Se utiliza el  numero de orden
+                        detalle.setNumeroOrden(numeroOrden);   //relaciono DetalleOrden con Orden
+                        actC.getOrdenados().add((new Orden( detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
+
+                    }else{
+
+                        //No se ha pedido nada a este suplidor
+                        Ordenes orden = new Ordenes();
+                        orden.setCodigoSuplidor(suplidor.getCodigoSuplidor());
+                        orden.setFechaOrden(fechaEntrega); //fecha entrega
+                        orden.setCiudadSuplidor(suplidor.getCiudad());//ciudadSuplidor
+                        orden.setMontoTotal(detalle.getMontoDetalle());//montoTotal
+                        ordenes.add(orden);
+
+                        //se utiliza el nuevo numero de orden
+                        detalle.setNumeroOrden(orden.getNumeroOrden());
+                        actC.getOrdenados().add((new Orden(detalle.getCodigoAlmacen(), cantidad_comprar, fechaEntrega)));//almacen al que se pide es un numero random del 1 al 3.
+                    }
+
+                    //actualizo el componete
+                    componenteRepositorio.save(actC);
+
+                    //Guardo el detalle
+                    mensaje+="Se genero la orden de compra para el suplidor: "+mejor_suplidor.get("nombre")+", se pidieron"+cantidad_comprar+ " para el componente: " + peticion.getDescripcion()+".\n";
                     detalleOrdenRepositorio.save(detalle);
                 }
             }
         }
         
 
+        if(ordenes.isEmpty()){
+            attr.addAttribute("alerta",mensaje);
+            return "redirect:/crud/generarOrden";
+        }
         for (Ordenes orden : ordenes){
             ordenesRepositorio.save(orden);
         }
         ordenesCarrito = new HashMap<Componente, Integer>();
+
+        attr.addAttribute("alerta",mensaje);
         return "redirect:/crud/verOrden";
+    }
+
+    private int verificarNumeroOrdenBySuplidor(ArrayList<Ordenes> ordenes, int codigoSuplidor) {
+
+        for (int i=0; i< ordenes.size();  i++) {
+            Ordenes act= ordenes.get(i);
+            if(act.getCodigoSuplidor()==codigoSuplidor){
+                return i;
+            }
+        }
+        return -1;
     }
 
     @RequestMapping("/view/Element")
