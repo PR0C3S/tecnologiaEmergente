@@ -108,7 +108,7 @@ public class ThymeleafControlador {
             }else{// si no va a haber suficiente stock, busco el mejor suplidor
         
                 int cantidad_comprar = stockEsperado - ordenesCarrito.get(peticion);
-                AggregationResults<Document> output3 = tiempoEntregaSuplidorRepositorio.selectSuplidor(fechaDeseada, peticion.getCodigoComponente(), cantidad_comprar, diasPedido); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
+                AggregationResults<Document> output3 = tiempoEntregaSuplidorRepositorio.selectSuplidor(peticion.getCodigoComponente(), cantidad_comprar, diasPedido); //>> mongo //find_mejor_suplidor no retorna un Suplidor en si, si no un objeto Json con toda la info que necesito.
                 Document mejor_suplidor = output.getUniqueMappedResult();
                 if (mejor_suplidor.isEmpty()){ //query no encontro suplidor que pueda cumplir requisitos.
                     System.out.println("No se existe suplidor que cumpla con los requisitos para producto: " + peticion.getDescripcion());

@@ -11,10 +11,10 @@ import java.time.LocalDate;
 public interface TiempoEntregaSuplidorRepositorio extends MongoRepository<TiempoEntregaSuplidor, String> {
 
     @Aggregation(pipeline = {
-          "{$match: {codigoComponente: id, \"activo\": \"S\", \"tiempoEntrega\": { $lte: ?3 } } }",
-            "{$set: {montoTotal:  {$multiply : [?2, {$divide : [\"$precio\", {$add:[1, {$divide : ['$descuento',100] } ] } ] } ] } } }",
+          "{$match: {codigoComponente: ?0, \"activo\": \"S\", \"tiempoEntrega\": { $lte: ?2 } } }",
+            "{$set: {montoTotal:  {$multiply : [?1, {$divide : [\"$precio\", {$add:[1, {$divide : ['$descuento',100] } ] } ] } ] } } }",
             "{$sort: {montoTotal:1} }",
             "{$limit : 1}"
     })
-    AggregationResults<Document> selectSuplidor(LocalDate fechaDeseada, String componente, int cantidad_comprar, int diasPedido);
+    AggregationResults<Document> selectSuplidor( String componente, int cantidad_comprar, int diasPedido);
 }
