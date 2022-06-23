@@ -17,7 +17,7 @@ public class Componente {
 
     @Id
     private String id;
-    private String codigoComponente;
+    private int codigoComponente;
     private String descripcion;
     private String unidad="UND";
     private List<Almacen> almacenes;

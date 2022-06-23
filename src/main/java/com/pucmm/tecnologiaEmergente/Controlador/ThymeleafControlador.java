@@ -97,7 +97,7 @@ public class ThymeleafControlador {
             dc = output1.getUniqueMappedResult();
             int balanceTotal = (int) dc.get("balanceTotal");
 
-            AggregationResults<Document> output2 = componenteRepositorio.findComponenteOrdendos(peticion.getId(), fechaDeseada);
+            AggregationResults<Document> output2 = componenteRepositorio.findComponenteOrdendos(peticion.getCodigoComponente(), fechaDeseada);
             dc = output2.getUniqueMappedResult();
             int totalEntregados = (int) dc.get("totalEntregados");
             int stockEsperado = balanceTotal+totalEntregados;

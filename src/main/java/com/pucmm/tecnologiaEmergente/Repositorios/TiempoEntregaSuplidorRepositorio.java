@@ -16,5 +16,5 @@ public interface TiempoEntregaSuplidorRepositorio extends MongoRepository<Tiempo
             "{$sort: {montoTotal:1} }",
             "{$limit : 1}"
     })
-    AggregationResults<Document> selectSuplidor( String componente, int cantidad_comprar, int diasPedido);
+    AggregationResults<Document> selectSuplidor( int componente, int cantidad_comprar, int diasPedido);
 }

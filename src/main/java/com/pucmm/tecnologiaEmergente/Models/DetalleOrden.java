@@ -18,7 +18,7 @@ public class DetalleOrden {
     private int codigoDetalle;
     private int numeroOrden;
     private int codigoAlmacen;
-    private String codigoComponente;
+    private int codigoComponente;
     private float cantidadComprada;
     private float precioCompra;
     private String unidadCompra ="UND";

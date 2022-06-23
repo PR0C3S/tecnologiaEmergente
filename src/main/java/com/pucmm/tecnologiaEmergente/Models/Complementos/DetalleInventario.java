@@ -10,7 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 public class DetalleInventario {
 
-    private String codigoComponente;
+    private int codigoComponente;
     private int cantidadMovimiento;
     private String unidad="UND";
 }
